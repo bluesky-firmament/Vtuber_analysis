@@ -1,3 +1,6 @@
+import matplotlib
+import matplotlib.pyplot as plt
+
 import pytchat
 import time
 import csv 
@@ -18,20 +21,50 @@ def main():
     video_name_lists = video_name_loads(video_name_lists,load_csvname)
     video_time_lists = video_duration_calculate(video_time_lists,load_csvname)
     # print(video_id_lists)
-    print(video_time_lists)
+    # print(video_time_lists)
     video_comment_number = []
+    video_comment_number_normalize = []
+    iteration = 0
     for videoid in video_id_lists:
-        print(videoid)
+        # print(videoid)
         comment_number = get_comment_number(videoid)
         video_comment_number.append(comment_number)
-        print(video_comment_number)
+        if(comment_number != 0):
+            video_comment_number_normalize.append(comment_number / video_time_lists[iteration])
+        else:
+            video_comment_number_normalize.append(0)
+        # print(video_comment_number)
+        # print(video_comment_number_normalize)
+        iteration = iteration + 1
+    
+    video_matrix = pd.merge(video_id_lists, video_name_lists, right_index=True, left_index=True)
+    video_matrix = pd.merge(video_matrix, pd.DataFrame(video_time_lists,columns=['duration[s]']), right_index=True, left_index=True)
+    video_matrix = pd.merge(video_matrix, pd.DataFrame(video_comment_number,columns=['comment number']), right_index=True, left_index=True)
+    video_matrix = pd.merge(video_matrix, pd.DataFrame(video_comment_number_normalize,columns=['comment number normalize']), right_index=True, left_index=True)
+    print(video_matrix)
+
+    # print(video_matrix)
+    video_matrix.to_csv("matrix.csv")
+    plot_dataframe(video_matrix)
     # for video_id in video_id_lists:
     #     get_comment(video_id)
 
 def get_comment_number(csvname):
-    csvname = "data/" + csvname + ".csv"
-    df= pd.read_csv(csvname)
-    return len(df)
+    try:
+        csvname = "data/" + csvname + ".csv"
+        df= pd.read_csv(csvname)
+        return len(df)
+    except:
+        return 0
+
+def plot_dataframe(video_matrix):
+    plt.style.use('ggplot') 
+    font = {'family' : 'meiryo'}
+    matplotlib.rc('font', **font)
+    ax = video_matrix.plot( y=['comment number normalize'], bins=50, alpha=0.5, figsize=(16,4), kind='hist').figure
+    ax.savefig("histogram.png")
+    line_chart =video_matrix.plot( y=['comment number normalize'], figsize=(16,4), alpha=0.5).figure
+    line_chart.savefig("line.png")
 
 def get_comment(video_id):
     # PytchatCoreオブジェクトの取得
@@ -42,7 +75,7 @@ def get_comment(video_id):
         return
     comment_matrix = []
     iteration = 0
-    print(video_id)
+    # print(video_id)
     with open(csv_name, "w", encoding='utf-8',newline="") as file:
         while livechat.is_alive():
             # チャットデータの取得
@@ -78,12 +111,12 @@ def video_name_loads(video_name_lists,load_csvname):
 
 def video_duration_calculate(video_time_lists,load_csvname):
     video_id_data = pd.read_csv(load_csvname)
-    print(video_id_data)
+    # print(video_id_data)
     video_start = []
     video_end = []
     video_start = video_id_data["start"]
     video_end = video_id_data["end"]
-    print(type(video_end))
+    # print(type(video_end))
     video_duration = []
     for iteration in range(0,video_end.count()):
         begin = datetime.datetime.strptime(video_start[iteration], '%Y/%m/%d %H:%M:%S')

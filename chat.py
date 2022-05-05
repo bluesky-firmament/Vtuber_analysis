@@ -43,9 +43,11 @@ def main():
     video_matrix = pd.merge(video_matrix, pd.DataFrame(video_comment_number_normalize,columns=['comment number normalize']), right_index=True, left_index=True)
     print(video_matrix)
 
+    for video_id in video_id_lists:
+        output_comment_users_list(video_id)
     # print(video_matrix)
     video_matrix.to_csv("matrix.csv")
-    plot_dataframe(video_matrix)
+    plot_normalize_dataframe(video_matrix)
     # for video_id in video_id_lists:
     #     get_comment(video_id)
 
@@ -57,14 +59,18 @@ def get_comment_number(csvname):
     except:
         return 0
 
-def plot_dataframe(video_matrix):
+def plot_normalize_dataframe(video_matrix):
     plt.style.use('ggplot') 
     font = {'family' : 'meiryo'}
     matplotlib.rc('font', **font)
-    ax = video_matrix.plot( y=['comment number normalize'], bins=50, alpha=0.5, figsize=(16,4), kind='hist').figure
-    ax.savefig("histogram.png")
-    line_chart =video_matrix.plot( y=['comment number normalize'], figsize=(16,4), alpha=0.5).figure
-    line_chart.savefig("line.png")
+    plot_dataframe(video_matrix,"comment number normalize")
+    plot_dataframe(video_matrix,"comment number")
+
+def plot_dataframe(video_matrix,collum_name):
+    ax = video_matrix.plot( y=[collum_name], bins=50, alpha=0.5, figsize=(16,4), kind='hist').figure
+    ax.savefig(collum_name +"histogram.png")
+    line_chart =video_matrix.plot( y=[collum_name], figsize=(16,4), alpha=0.5).figure
+    line_chart.savefig(collum_name +"line.png")
 
 def get_comment(video_id):
     # PytchatCoreオブジェクトの取得
@@ -123,6 +129,10 @@ def video_duration_calculate(video_time_lists,load_csvname):
         end = datetime.datetime.strptime(video_end[iteration], '%Y/%m/%d %H:%M:%S')
         video_duration.append((end - begin).seconds)
     return video_duration
+
+def output_comment_users_list(video_id):
+    video_dataframe = pd.read_csv("data/" + video_id + ".csv", names=('time', 'user_name', 'comment'))
+    video_dataframe["user_name"].value_counts().to_csv("./comment_data/" + video_id + ".csv")
 
 if __name__ == "__main__":
     main()

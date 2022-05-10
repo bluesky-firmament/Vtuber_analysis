@@ -12,7 +12,8 @@ import datetime
 debug_mode = 0 #1のときdebug用の出力
 
 def main():
-    load_csvname = "videos_csv.csv"
+    print("読み込むcsvfileの名前を入力してください")
+    load_csvname =  "./each_streamers_videoids/" + input() + ".csv"
 
     video_id_lists = []
     video_name_lists = []
@@ -25,6 +26,8 @@ def main():
     video_comment_number = []
     video_comment_number_normalize = []
     iteration = 0
+    for video_id in video_id_lists:
+        get_comment(video_id)
     for videoid in video_id_lists:
         # print(videoid)
         comment_number = get_comment_number(videoid)
@@ -48,8 +51,7 @@ def main():
     # print(video_matrix)
     video_matrix.to_csv("matrix.csv")
     plot_normalize_dataframe(video_matrix)
-    # for video_id in video_id_lists:
-    #     get_comment(video_id)
+    
 
 def get_comment_number(csvname):
     try:

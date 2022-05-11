@@ -11,6 +11,9 @@ import datetime
 
 debug_mode = 0 #1のときdebug用の出力
 
+get_comment_mode = 1
+
+
 def main():
     print("読み込むcsvfileの名前を入力してください")
     load_csvname =  "./each_streamers_videoids/" + input() + ".csv"
@@ -25,9 +28,11 @@ def main():
     # print(video_time_lists)
     video_comment_number = []
     video_comment_number_normalize = []
+    unique_user_number = []
     iteration = 0
-    for video_id in video_id_lists:
-        get_comment(video_id)
+    if(get_comment_mode == 1):
+        for video_id in video_id_lists:
+            get_comment(video_id)
     for videoid in video_id_lists:
         # print(videoid)
         comment_number = get_comment_number(videoid)
@@ -83,7 +88,7 @@ def get_comment(video_id):
         return
     comment_matrix = []
     iteration = 0
-    # print(video_id)
+    print(video_id)
     with open(csv_name, "w", encoding='utf-8',newline="") as file:
         while livechat.is_alive():
             # チャットデータの取得

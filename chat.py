@@ -11,18 +11,29 @@ import datetime
 
 debug_mode = 0 #1のときdebug用の出力
 
-get_comment_mode = 1
+
 
 
 def main():
     print("読み込むcsvfileの名前を入力してください")
     load_csvname =  "./each_streamers_videoids/" + input() + ".csv"
+    
+    print("videoidからコメントを取得しますか? 取得する場合は1を入力してください")
+    get_comment_mode = int(input())
+    
+    data_path = './data'
+    comment_data_path = './comment_data'
+    os.makedirs(data_path,exist_ok=True)
+    os.makedirs(comment_data_path,exist_ok=True)
+
 
     video_id_lists = []
     video_name_lists = []
     video_time_lists = []
+    video_state_lists = []
     video_id_lists = video_id_loads(video_id_lists,load_csvname)
     video_name_lists = video_name_loads(video_name_lists,load_csvname)
+    video_state_lists = video_state_loads(video_state_lists,load_csvname)
     video_time_lists = video_duration_calculate(video_time_lists,load_csvname)
     # print(video_id_lists)
     # print(video_time_lists)
@@ -30,10 +41,15 @@ def main():
     video_comment_number_normalize = []
     unique_user_number = []
     iteration = 0
-    if(get_comment_mode == 1):
-        for video_id in video_id_lists:
-            get_comment(video_id)
-    for videoid in video_id_lists:
+
+
+    if(get_comment_mode == 1): #videoidのリストを回して,各動画のコメントを取得する
+        for iteration,video_id in enumerate(video_id_lists):
+            if(video_state_lists[iteration] == "archive"):
+                get_comment(video_id)
+    
+
+    for videoid in video_id_lists: #各コメントのデータからコメント数などの解析をする
         # print(videoid)
         comment_number = get_comment_number(videoid)
         video_comment_number.append(comment_number)
@@ -45,14 +61,16 @@ def main():
         # print(video_comment_number_normalize)
         iteration = iteration + 1
     
+
     video_matrix = pd.merge(video_id_lists, video_name_lists, right_index=True, left_index=True)
     video_matrix = pd.merge(video_matrix, pd.DataFrame(video_time_lists,columns=['duration[s]']), right_index=True, left_index=True)
     video_matrix = pd.merge(video_matrix, pd.DataFrame(video_comment_number,columns=['comment number']), right_index=True, left_index=True)
     video_matrix = pd.merge(video_matrix, pd.DataFrame(video_comment_number_normalize,columns=['comment number normalize']), right_index=True, left_index=True)
     print(video_matrix)
 
-    for video_id in video_id_lists:
-        output_comment_users_list(video_id)
+    for iteration,video_id in enumerate(video_id_lists):
+        if(video_state_lists[iteration] == "archive"):
+            output_comment_users_list(video_id)
     # print(video_matrix)
     video_matrix.to_csv("matrix.csv")
     plot_normalize_dataframe(video_matrix)
@@ -121,6 +139,12 @@ def video_name_loads(video_name_lists,load_csvname):
     video_id_data = pd.read_csv(load_csvname)
     video_name_lists = video_id_data["title"]
     return video_name_lists
+
+def video_state_loads(video_state_lists,load_csvname):
+    video_state_data = pd.read_csv(load_csvname)
+    video_state_lists = video_state_data["state"]
+    return video_state_lists
+
 
 def video_duration_calculate(video_time_lists,load_csvname):
     video_id_data = pd.read_csv(load_csvname)

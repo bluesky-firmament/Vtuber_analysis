@@ -56,6 +56,7 @@ def main():
         if(comment_number != 0):
             video_comment_number_normalize.append(comment_number / video_time_lists[iteration])
         else:
+            # continue
             video_comment_number_normalize.append(0)
         # print(video_comment_number)
         # print(video_comment_number_normalize)
